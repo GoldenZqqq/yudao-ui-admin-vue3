@@ -41,6 +41,7 @@ export default defineComponent({
       else if (isArray(props.value)) {
         return props.value.map(String)
       }
+      return []
     })
     const rederDictTag = () => {
       if (!props.type) {
