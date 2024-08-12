@@ -58,9 +58,14 @@
   </el-form>
 
   <!-- 商品属性添加 Form 表单 -->
-  <ProductPropertyAddForm ref="attributesAddFormRef" :propertyList="propertyList" />
+  <ProductPropertyAddForm
+    ref="attributesAddFormRef"
+    :propertyList="propertyList"
+    @success="getPropertyValueList"
+  />
 </template>
 <script lang="ts" setup>
+import * as PropertyApi from '@/api/mall/product/property'
 import { PropType } from 'vue'
 import { copyValueToTarget } from '@/utils'
 import { propTypes } from '@/utils/propTypes'
@@ -190,5 +195,16 @@ const onChangeSpec = () => {
 /** 调用 SkuList generateTableData 方法*/
 const generateSkus = (propertyList: any[]) => {
   skuListRef.value.generateTableData(propertyList)
+}
+
+/* 获取属性值列表 */
+const getPropertyValueList = async (id, propertyId) => {
+  formLoading.value = true
+  try {
+    const data = await PropertyApi.getPropertyValuePage({ pageNo: 1, pageSize: 100, propertyId })
+    propertyList.value.find((item) => item.id === id).propertyOpts = data.list
+  } finally {
+    formLoading.value = false
+  }
 }
 </script>

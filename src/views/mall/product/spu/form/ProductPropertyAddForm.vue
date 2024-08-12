@@ -16,11 +16,11 @@
           allow-create
           default-first-option
           :reserve-keyword="false"
-          placeholder="请选择属性名称。如果不存在，可手动输入选择"
-          class="!w-360px"
+          placeholder="请选择属性名称"
+          style="width: 240px"
         >
           <el-option
-            v-for="item in attributeOptions"
+            v-for="item in attrOption"
             :key="item.id"
             :label="item.name"
             :value="item.name"
@@ -39,6 +39,7 @@ import * as PropertyApi from '@/api/mall/product/property'
 
 defineOptions({ name: 'ProductPropertyForm' })
 
+const emit = defineEmits(['success']) // 定义 success 事件，用于操作成功后的回调
 const { t } = useI18n() // 国际化
 const message = useMessage() // 消息弹窗
 
@@ -52,7 +53,7 @@ const formRules = reactive({
 })
 const formRef = ref() // 表单 Ref
 const attributeList = ref([]) // 商品属性列表
-const attributeOptions = ref([] as PropertyApi.PropertyVO[]) // 商品属性名称下拉框
+const attrOption = ref([]) // 属性名称下拉框
 const props = defineProps({
   propertyList: {
     type: Array,
@@ -75,6 +76,7 @@ watch(
 /** 打开弹窗 */
 const open = async () => {
   dialogVisible.value = true
+  getAttrOption()
   resetForm()
   // 加载列表
   await getAttributeOptions()
@@ -120,7 +122,16 @@ const submitForm = async () => {
       ...formData.value,
       values: []
     })
-    // 关闭弹窗
+    // 判断最终提交的属性名称是否是选择的 自己手动输入的属性名称不执行emit
+    attrOption.value.forEach((item) => {
+      if (item.name === formData.value.name) {
+        emit('success', propertyId, item.id)
+        message.success(t('common.createSuccess'))
+        dialogVisible.value = false
+        // 中断循环
+        throw new Error()
+      }
+    })
     message.success(t('common.createSuccess'))
     dialogVisible.value = false
   } finally {
@@ -137,10 +148,11 @@ const resetForm = () => {
 }
 
 /** 获取商品属性下拉选项 */
-const getAttributeOptions = async () => {
+const getAttrOption = async () => {
   formLoading.value = true
   try {
-    attributeOptions.value = await PropertyApi.getPropertySimpleList()
+    const data = await PropertyApi.getPropertyPage({ pageNo: 1, pageSize: 100 })
+    attrOption.value = data.list
   } finally {
     formLoading.value = false
   }
