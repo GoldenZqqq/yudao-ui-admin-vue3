@@ -54,7 +54,15 @@ export default defineComponent({
       const dictOptions = getDictOptions(props.type)
 
       return (
-        <div class="dict-tag">
+        <div
+          class="dict-tag"
+          style={{
+            display: 'inline-flex',
+            gap: props.gutter,
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}
+        >
           {dictOptions.map((dict: DictDataType) => {
             if (valueArr.value.includes(dict.value)) {
               if (dict.colorType + '' === 'primary' || dict.colorType + '' === 'default') {
