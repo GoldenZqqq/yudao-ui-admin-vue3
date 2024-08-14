@@ -85,7 +85,7 @@ defineExpose({ open }) // 提供 open 方法，用于打开弹窗
 
 /** 提交表单 */
 const submitForm = async () => {
-  // 1.1 重复添加校验
+  // 情况一：如果是已存在的属性，直接结束，不提交表单新增
   for (const attrItem of attributeList.value) {
     if (attrItem.name === formData.value.name) {
       return message.error('该属性已存在，请勿重复添加')
@@ -122,8 +122,8 @@ const submitForm = async () => {
       ...formData.value,
       values: []
     })
-    // 判断最终提交的属性名称是否是选择的 自己手动输入的属性名称不执行emit
-    for (const element of attrOption.value) {
+    // 判断最终提交的属性名称是否是用户下拉选择的 自己手动输入的属性名称就不执行emit获取该属性名下属性值列表
+    for (const element of attributeOptions.value) {
       if (element.name === formData.value.name) {
         emit('success', propertyId, element.id)
         message.success(t('common.createSuccess'))
@@ -131,6 +131,7 @@ const submitForm = async () => {
         return
       }
     }
+    // 关闭弹窗
     message.success(t('common.createSuccess'))
     dialogVisible.value = false
   } finally {
