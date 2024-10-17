@@ -37,19 +37,11 @@
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-<<<<<<< HEAD
-                <el-dropdown-item>
-                  <Icon icon="ep:circle-plus" :size="13" class="mr-5px" />
-                  新建分类
-                </el-dropdown-item>
-                <el-dropdown-item>
-=======
                 <el-dropdown-item command="handleAddCategory">
                   <Icon icon="ep:circle-plus" :size="13" class="mr-5px" />
                   新建分类
                 </el-dropdown-item>
                 <el-dropdown-item command="handleSort">
->>>>>>> bpm-3st-stage
                   <Icon icon="fa:sort-amount-desc" :size="13" class="mr-5px" />
                   分类排序
                 </el-dropdown-item>
@@ -68,186 +60,6 @@
 
     <!-- 分类卡片组 -->
     <div class="px-15px">
-<<<<<<< HEAD
-      <ContentWrap :body-style="{ padding: 0 }" v-for="(list, title) in categoryGroup" :key="title">
-        <!-- 默认使其全部展开 -->
-        <el-collapse :modelValue="title">
-          <el-collapse-item :name="title">
-            <template #icon="{ isActive }">
-              <div
-                class="ml-20px flex items-center"
-                :class="['transition-transform duration-300', isActive ? 'rotate-180' : 'rotate-0']"
-              >
-                <Icon icon="ep:arrow-down-bold" color="#999" />
-              </div>
-              <div class="ml-auto mr-45px">
-                <el-button link type="info" class="mr-10px" @click.stop="handleSort">
-                  <Icon icon="fa:sort-amount-desc" class="mr-5px" />
-                  排序
-                </el-button>
-                <el-button link type="info" @click.stop="handleGroup">
-                  <Icon icon="ep:setting" class="mr-5px" />
-                  分组
-                </el-button>
-              </div>
-            </template>
-            <template #title>
-              <div class="flex items-center">
-                <h3 class="ml-20px mr-8px text-18px">{{ title }}</h3>
-                <div class="color-gray-600 text-16px"> ({{ list?.length || 0 }}) </div>
-              </div>
-            </template>
-
-            <el-table
-              :header-cell-style="{ backgroundColor: isDark ? '' : '#edeff0', paddingLeft: '10px' }"
-              :cell-style="{ paddingLeft: '10px' }"
-              v-loading="loading"
-              :data="list"
-            >
-              <el-table-column label="流程名" prop="name" min-width="150">
-                <template #default="scope">
-                  <div class="flex items-center">
-                    <el-image :src="scope.row.icon" class="h-38px w-38px mr-10px rounded" />
-                    {{ scope.row.name }}
-                  </div>
-                </template>
-              </el-table-column>
-              <el-table-column label="可见范围" prop="startUserIds" min-width="100">
-                <template #default="scope">
-                  <el-text v-if="!scope.row.startUsers || scope.row.startUsers.length === 0">
-                    全部可见
-                  </el-text>
-                  <el-text v-else-if="scope.row.startUsers.length == 1">
-                    {{ scope.row.startUsers[0].nickname }}
-                  </el-text>
-                  <el-text v-else>
-                    <el-tooltip
-                      class="box-item"
-                      effect="dark"
-                      placement="top"
-                      :content="scope.row.startUsers.map((user: any) => user.nickname).join('、')"
-                    >
-                      {{ scope.row.startUsers[0].nickname }}等
-                      {{ scope.row.startUsers.length }} 人可见
-                    </el-tooltip>
-                  </el-text>
-                </template>
-              </el-table-column>
-              <el-table-column label="表单信息" prop="formType" min-width="200">
-                <template #default="scope">
-                  <el-button
-                    v-if="scope.row.formType === 10"
-                    type="primary"
-                    link
-                    @click="handleFormDetail(scope.row)"
-                  >
-                    <span>{{ scope.row.formName }}</span>
-                  </el-button>
-                  <el-button
-                    v-else-if="scope.row.formType === 20"
-                    type="primary"
-                    link
-                    @click="handleFormDetail(scope.row)"
-                  >
-                    <span>{{ scope.row.formCustomCreatePath }}</span>
-                  </el-button>
-                  <label v-else>暂无表单</label>
-                </template>
-              </el-table-column>
-              <el-table-column label="最后发布" prop="deploymentTime" min-width="250">
-                <template #default="scope">
-                  <div class="flex items-center">
-                    <span v-if="scope.row.processDefinition" class="w-150px">
-                      {{ formatDate(scope.row.processDefinition.deploymentTime) }}
-                    </span>
-                    <el-tag v-if="scope.row.processDefinition">
-                      v{{ scope.row.processDefinition.version }}
-                    </el-tag>
-                    <el-tag v-else type="warning">未部署</el-tag>
-                    <el-tag
-                      v-if="scope.row.processDefinition?.suspensionState === 2"
-                      type="warning"
-                      class="ml-10px"
-                    >
-                      已停用
-                    </el-tag>
-                  </div>
-                </template>
-              </el-table-column>
-              <el-table-column label="操作" width="200" fixed="right">
-                <template #default="scope">
-                  <el-button
-                    link
-                    type="primary"
-                    @click="openForm('update', scope.row.id)"
-                    v-hasPermi="['bpm:model:update']"
-                    :disabled="!isManagerUser(scope.row)"
-                  >
-                    修改
-                  </el-button>
-                  <el-button
-                    link
-                    class="!ml-5px"
-                    type="primary"
-                    @click="handleDesign(scope.row)"
-                    v-hasPermi="['bpm:model:update']"
-                    :disabled="!isManagerUser(scope.row)"
-                  >
-                    设计
-                  </el-button>
-                  <el-button
-                    link
-                    class="!ml-5px"
-                    type="primary"
-                    @click="handleDeploy(scope.row)"
-                    v-hasPermi="['bpm:model:deploy']"
-                    :disabled="!isManagerUser(scope.row)"
-                  >
-                    发布
-                  </el-button>
-                  <el-dropdown
-                    class="!align-middle ml-5px"
-                    @command="(command) => handleCommand(command, scope.row)"
-                    v-hasPermi="[
-                      'bpm:process-definition:query',
-                      'bpm:model:update',
-                      'bpm:model:delete'
-                    ]"
-                  >
-                    <el-button type="primary" link>更多</el-button>
-                    <template #dropdown>
-                      <el-dropdown-menu>
-                        <el-dropdown-item
-                          command="handleDefinitionList"
-                          v-if="checkPermi(['bpm:process-definition:query'])"
-                        >
-                          历史
-                        </el-dropdown-item>
-                        <el-dropdown-item
-                          command="handleChangeState"
-                          v-if="checkPermi(['bpm:model:update']) && scope.row.processDefinition"
-                          :disabled="!isManagerUser(scope.row)"
-                        >
-                          {{ scope.row.processDefinition.suspensionState === 1 ? '停用' : '启用' }}
-                        </el-dropdown-item>
-                        <el-dropdown-item
-                          type="danger"
-                          command="handleDelete"
-                          v-if="checkPermi(['bpm:model:delete'])"
-                          :disabled="!isManagerUser(scope.row)"
-                        >
-                          删除
-                        </el-dropdown-item>
-                      </el-dropdown-menu>
-                    </template>
-                  </el-dropdown>
-                </template>
-              </el-table-column>
-            </el-table>
-          </el-collapse-item>
-        </el-collapse>
-      </ContentWrap>
-=======
       <draggable v-model="categoryGroup" item-key="id" :animation="400">
         <template #item="{ element }">
           <ContentWrap v-loading="loading" :body-style="{ padding: 0 }" :key="element.id">
@@ -260,7 +72,6 @@
           </ContentWrap>
         </template>
       </draggable>
->>>>>>> bpm-3st-stage
     </div>
   </ContentWrap>
 
@@ -399,27 +210,5 @@ onMounted(async () => {
   .el-divider--horizontal {
     margin-top: 6px;
   }
-<<<<<<< HEAD
-  .el-collapse,
-  .el-collapse-item__header,
-  .el-collapse-item__wrap {
-    border: none;
-  }
-  .el-collapse-item__arrow {
-    margin-left: 10px;
-    font-size: 20px;
-    font-weight: 500;
-  }
-  .el-collapse-item__content {
-    padding-bottom: 0;
-  }
-  .el-table__cell {
-    border-bottom: none !important;
-  }
-  .el-table__row {
-    height: 68px;
-  }
-=======
->>>>>>> bpm-3st-stage
 }
 </style>
