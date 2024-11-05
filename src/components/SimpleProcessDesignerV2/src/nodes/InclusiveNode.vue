@@ -6,10 +6,10 @@
         class="branch-node-readonly"
         :class="`${useTaskStatusClass(currentNode?.activityStatus)}`"
       >
-        <span class="iconfont icon-parallel icon-size parallel"></span>
+        <span class="iconfont icon-inclusive icon-size inclusive"></span>
       </div>
-      <el-button v-else class="branch-node-add" color="#626aef" @click="addCondition" plain
-        >添加分支</el-button
+      <el-button v-else class="branch-node-add" color="#345da2" @click="addCondition" plain
+        >添加条件</el-button
       >
       <div
         class="branch-node-item"
@@ -17,7 +17,7 @@
         :key="index"
       >
         <template v-if="index == 0">
-          <div class="branch-line-first-top"></div>
+          <div class="branch-line-first-top"> </div>
           <div class="branch-line-first-bottom"></div>
         </template>
         <template v-if="index + 1 == currentNode.conditionNodes?.length">
@@ -26,19 +26,24 @@
         </template>
         <div class="node-wrapper">
           <div class="node-container">
-            <div class="node-box" :class="`${useTaskStatusClass(item.activityStatus)}`">
+            <div
+              class="node-box"
+              :class="[
+                { 'node-config-error': !item.showText },
+                `${useTaskStatusClass(item.activityStatus)}`
+              ]"
+            >
               <div class="branch-node-title-container">
                 <div v-if="showInputs[index]">
                   <input
                     type="text"
-                    class="input-max-width editable-title-input"
+                    class="editable-title-input"
                     @blur="blurEvent(index)"
                     v-mountedFocus
                     v-model="item.name"
                   />
                 </div>
                 <div v-else class="branch-title" @click="clickEvent(index)"> {{ item.name }} </div>
-                <div class="branch-priority">无优先级</div>
               </div>
               <div class="branch-node-content" @click="conditionNodeConfig(item.id)">
                 <div class="branch-node-text" :title="item.showText" v-if="item.showText">
@@ -48,7 +53,10 @@
                   {{ NODE_DEFAULT_TEXT.get(NodeType.CONDITION_NODE) }}
                 </div>
               </div>
-              <div v-if="!readonly" class="node-toolbar">
+              <div
+                class="node-toolbar"
+                v-if="!readonly && index + 1 !== currentNode.conditionNodes?.length"
+              >
                 <div class="toolbar-icon">
                   <Icon
                     color="#0089ff"
@@ -58,10 +66,30 @@
                   />
                 </div>
               </div>
+              <div
+                class="branch-node-move move-node-left"
+                v-if="!readonly && index != 0 && index + 1 !== currentNode.conditionNodes?.length"
+                @click="moveNode(index, -1)"
+              >
+                <Icon icon="ep:arrow-left" />
+              </div>
+
+              <div
+                class="branch-node-move move-node-right"
+                v-if="
+                  !readonly &&
+                  currentNode.conditionNodes &&
+                  index < currentNode.conditionNodes.length - 2
+                "
+                @click="moveNode(index, 1)"
+              >
+                <Icon icon="ep:arrow-right" />
+              </div>
             </div>
             <NodeHandler v-model:child-node="item.childNode" :current-node="item" />
           </div>
         </div>
+        <ConditionNodeConfig :node-index="index" :condition-node="item" :ref="item.id" />
         <!-- 递归显示子节点  -->
         <ProcessNodeTree
           v-if="item && item.childNode"
@@ -84,10 +112,12 @@ import NodeHandler from '../NodeHandler.vue'
 import ProcessNodeTree from '../ProcessNodeTree.vue'
 import { SimpleFlowNode, NodeType, NODE_DEFAULT_TEXT } from '../consts'
 import { useTaskStatusClass } from '../node'
+import { getDefaultInclusiveConditionNodeName } from '../utils'
 import { generateUUID } from '@/utils'
+import ConditionNodeConfig from '../nodes-config/ConditionNodeConfig.vue'
 const { proxy } = getCurrentInstance() as any
 defineOptions({
-  name: 'ParallelNode'
+  name: 'InclusiveNode'
 })
 const props = defineProps({
   flowNode: {
@@ -105,10 +135,10 @@ const emits = defineEmits<{
     nodeType: number
   ]
 }>()
-
-const currentNode = ref<SimpleFlowNode>(props.flowNode)
 // 是否只读
 const readonly = inject<Boolean>('readonly')
+
+const currentNode = ref<SimpleFlowNode>(props.flowNode)
 
 watch(
   () => props.flowNode,
@@ -122,7 +152,8 @@ const showInputs = ref<boolean[]>([])
 const blurEvent = (index: number) => {
   showInputs.value[index] = false
   const conditionNode = currentNode.value.conditionNodes?.at(index) as SimpleFlowNode
-  conditionNode.name = conditionNode.name || `并行${index + 1}`
+  conditionNode.name =
+    conditionNode.name || getDefaultInclusiveConditionNodeName(index, conditionNode.defaultFlow)
 }
 
 // 点击条件名称
@@ -131,6 +162,9 @@ const clickEvent = (index: number) => {
 }
 
 const conditionNodeConfig = (nodeId: string) => {
+  if (readonly) {
+    return
+  }
   const conditionNode = proxy.$refs[nodeId][0]
   conditionNode.open()
 }
@@ -143,11 +177,13 @@ const addCondition = () => {
     let lastIndex = len - 1
     const conditionData: SimpleFlowNode = {
       id: 'Flow_' + generateUUID(),
-      name: '并行' + len,
-      showText: '无需配置条件同时执行',
+      name: '包容条件' + len,
+      showText: '',
       type: NodeType.CONDITION_NODE,
       childNode: undefined,
-      conditionNodes: []
+      conditionNodes: [],
+      conditionType: 1,
+      defaultFlow: false
     }
     conditionNodes.splice(lastIndex, 0, conditionData)
   }
@@ -166,6 +202,17 @@ const deleteCondition = (index: number) => {
   }
 }
 
+// 移动节点
+const moveNode = (index: number, to: number) => {
+  // -1 ：向左  1： 向右
+  if (currentNode.value.conditionNodes) {
+    currentNode.value.conditionNodes[index] = currentNode.value.conditionNodes.splice(
+      index + to,
+      1,
+      currentNode.value.conditionNodes[index]
+    )[0]
+  }
+}
 // 递归从父节点中查询匹配的节点
 const recursiveFindParentNode = (
   nodeList: SimpleFlowNode[],
@@ -178,7 +225,9 @@ const recursiveFindParentNode = (
   if (node.type === nodeType) {
     nodeList.push(node)
   }
-  // 条件节点 (NodeType.CONDITION_NODE) 比较特殊。需要调用其父节点并行节点（NodeType.PARALLEL_NODE) 继续查找
+  // 条件节点 (NodeType.CONDITION_NODE) 比较特殊。需要调用其父节点条件分支节点（NodeType.INCLUSIVE_BRANCH_NODE) 继续查找
   emits('find:parentNode', nodeList, nodeType)
 }
 </script>
+
+<style lang="scss" scoped></style>

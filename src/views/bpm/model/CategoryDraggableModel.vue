@@ -35,7 +35,7 @@
             <Icon icon="fa:sort-amount-desc" class="mr-5px" />
             排序
           </el-button>
-          <el-button v-else link type="info" class="mr-20px" @click.stop="handleAddModel('create')">
+          <el-button v-else link type="info" class="mr-20px" @click.stop="openModelForm('create')">
             <Icon icon="fa:plus" class="mr-5px" />
             新建
           </el-button>
@@ -150,7 +150,7 @@
             <el-button
               link
               type="primary"
-              @click="openForm('update', scope.row.id)"
+              @click="openModelForm('update', scope.row.id)"
               v-hasPermi="['bpm:model:update']"
               :disabled="!isManagerUser(scope.row)"
             >
@@ -299,12 +299,6 @@ const handleCategoryCommand = (command: string) => {
   }
 }
 
-/** 添加/修改操作 */
-const formRef = ref()
-const openForm = (type: string, id?: number) => {
-  formRef.value.open(type, id)
-}
-
 /** 删除按钮操作 */
 const handleDelete = async (row: any) => {
   try {
@@ -348,7 +342,7 @@ const handleDesign = (row: any) => {
     })
   } else {
     push({
-      name: 'SimpleWorkflowDesignEditor',
+      name: 'SimpleModelDesign',
       query: {
         modelId: row.id
       }
@@ -481,8 +475,8 @@ const handleDeleteGroup = async () => {
 
 // 添加流程模型弹窗
 const modelFormRef = ref()
-const handleAddModel = (type: string) => {
-  modelFormRef.value.open(type)
+const openModelForm = (type: string, id?: number) => {
+  modelFormRef.value.open(type, id)
 }
 
 watch(() => props.categoryInfo.modelList, updateTableData, { immediate: true })
@@ -498,9 +492,11 @@ watch(
 <style lang="scss">
 .rename-dialog.el-dialog {
   padding: 0 !important;
+
   .el-dialog__header {
     border-bottom: none;
   }
+
   .el-dialog__footer {
     border-top: none !important;
   }
@@ -509,8 +505,8 @@ watch(
 <style lang="scss" scoped>
 :deep() {
   .el-table__cell {
-    border-bottom: none !important;
     overflow: hidden;
+    border-bottom: none !important;
   }
 }
 </style>

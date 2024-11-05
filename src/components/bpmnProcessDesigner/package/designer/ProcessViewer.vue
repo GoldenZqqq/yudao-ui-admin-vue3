@@ -53,11 +53,14 @@
           />
           <el-table-column
             label="审批人"
-            prop="assigneeUser.nickname"
             min-width="100"
             align="center"
             v-if="selectActivityType === 'bpmn:UserTask'"
-          />
+          >
+            <template #default="scope">
+              {{ scope.row.assigneeUser?.nickname || scope.row.ownerUser?.nickname }}
+            </template>
+          </el-table-column>
           <el-table-column
             label="发起人"
             prop="assigneeUser.nickname"
@@ -65,12 +68,11 @@
             align="center"
             v-else
           />
-          <el-table-column
-            label="部门"
-            prop="assigneeUser.deptName"
-            min-width="100"
-            align="center"
-          />
+          <el-table-column label="部门" min-width="100" align="center">
+            <template #default="scope">
+              {{ scope.row.assigneeUser?.deptName || scope.row.ownerUser?.deptName }}
+            </template>
+          </el-table-column>
           <el-table-column
             :formatter="dateFormatter"
             align="center"
@@ -282,9 +284,12 @@ const importXML = async (xml: string) => {
 /** 高亮流程 */
 const setProcessStatus = (view: any) => {
   // 设置相关变量
+  if (!view || !view.processInstance) {
+    return
+  }
   processInstance.value = view.processInstance
   tasks.value = view.tasks
-  if (isLoading.value || !processInstance.value || !bpmnViewer.value) {
+  if (isLoading.value || !bpmnViewer.value) {
     return
   }
   const {

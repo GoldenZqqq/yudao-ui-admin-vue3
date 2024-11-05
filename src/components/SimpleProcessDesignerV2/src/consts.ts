@@ -1,6 +1,6 @@
 // @ts-ignore
 import { DictDataVO } from '@/api/system/dict/types'
-
+import { TaskStatusEnum } from '@/api/bpm/task'
 /**
  * 节点类型
  */
@@ -96,7 +96,8 @@ export interface SimpleFlowNode {
   conditionGroups?: ConditionGroup
   // 是否默认的条件
   defaultFlow?: boolean
-
+  // 活动的状态，用于前端节点状态展示
+  activityStatus? : TaskStatusEnum
 }
 // 候选人策略枚举 （ 用于审批节点。抄送节点 )
 export enum CandidateStrategy {
@@ -178,7 +179,7 @@ export enum ApproveMethodType {
 export type RejectHandler = {
   // 审批拒绝类型
   type: RejectHandlerType
-  // 回退节点 Id
+  // 退回节点 Id
   returnNodeId?: string
 }
 
@@ -360,7 +361,7 @@ export enum OperationButtonType {
    */
   ADD_SIGN = 5,
   /**
-   * 回退
+   * 退回
    */
   RETURN = 6,
   /**
@@ -507,17 +508,17 @@ OPERATION_BUTTON_NAME.set(OperationButtonType.REJECT, '拒绝')
 OPERATION_BUTTON_NAME.set(OperationButtonType.TRANSFER, '转办')
 OPERATION_BUTTON_NAME.set(OperationButtonType.DELEGATE, '委派')
 OPERATION_BUTTON_NAME.set(OperationButtonType.ADD_SIGN, '加签')
-OPERATION_BUTTON_NAME.set(OperationButtonType.RETURN, '回退')
+OPERATION_BUTTON_NAME.set(OperationButtonType.RETURN, '退回')
 OPERATION_BUTTON_NAME.set(OperationButtonType.COPY, '抄送')
 
 // 默认的按钮权限设置
 export const DEFAULT_BUTTON_SETTING: ButtonSetting[] = [
   { id: OperationButtonType.APPROVE, displayName: '通过', enable: true },
   { id: OperationButtonType.REJECT, displayName: '拒绝', enable: true },
-  { id: OperationButtonType.TRANSFER, displayName: '转办', enable: false },
-  { id: OperationButtonType.DELEGATE, displayName: '委派', enable: false },
-  { id: OperationButtonType.ADD_SIGN, displayName: '加签', enable: false },
-  { id: OperationButtonType.RETURN, displayName: '回退', enable: false }
+  { id: OperationButtonType.TRANSFER, displayName: '转办', enable: true },
+  { id: OperationButtonType.DELEGATE, displayName: '委派', enable: true },
+  { id: OperationButtonType.ADD_SIGN, displayName: '加签', enable: true },
+  { id: OperationButtonType.RETURN, displayName: '退回', enable: true }
 ]
 
 // 发起人的按钮权限。暂时定死，不可以编辑
@@ -527,7 +528,7 @@ export const START_USER_BUTTON_SETTING: ButtonSetting[] = [
   { id: OperationButtonType.TRANSFER, displayName: '转办', enable: false },
   { id: OperationButtonType.DELEGATE, displayName: '委派', enable: false },
   { id: OperationButtonType.ADD_SIGN, displayName: '加签', enable: false },
-  { id: OperationButtonType.RETURN, displayName: '回退', enable: false }
+  { id: OperationButtonType.RETURN, displayName: '退回', enable: false }
 ]
 
 export const MULTI_LEVEL_DEPT: DictDataVO = [
